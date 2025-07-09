@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Framework SAM para la simulación LOCAL de una API Gateway compleja.
+  Este proyecto está diseñado para funcionar con 'sam local start-api' y no para ser desplegado.
+
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: python3.9
+
+
+Resources:
+  # La API Gateway que SAM simulará localmente
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      # CORS es importante para que puedas llamar a la API local desde un posible frontend
+      Cors:
+        AllowMethods: "'POST,GET,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+
+
+  # La única función Lambda que actúa como enrutador
+  ApiRouterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: api_handler/
+      Handler: app.lambda_handler
+      Architectures:
+        - x86_64
+      Events:
+        # Definimos cada ruta según la estructura proporcionada para que 'sam local' las conozca
+        Root: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /, Method: get } }
+        Email: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /email, Method: post } }
+        Login: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /login, Method: post } }
+        Recovery: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /recovery, Method: post } }
+        Register: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /register, Method: post } }
+        ResendCode: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /resendcode, Method: post } }
+        ResetAccount: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /resetaccount, Method: post } }
+        Send: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /send, Method: post } }
+        VerifyAccount: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /verifyaccount, Method: post } }
+        FacebookLikes: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /facebooklikes, Method: post } }
+        HistoryChannel: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /historychannel, Method: post } }
+        Anonymous: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /anonymous, Method: post } }
+        Session: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /session, Method: post } }
+        VerifyProvider: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /verifyprovider, Method: post } }
+        VerifyToken: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /verifytoken, Method: post } }
+        TokenRoot: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /token, Method: get } }
+        TokenTransition: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /token/transition, Method: post } }
+        VerifyRoot: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /verify, Method: get } }
+        VerifySession: { Type: Api, Properties: { RestApiId: !Ref MyApi, Path: /verify/session, Method: post } }
